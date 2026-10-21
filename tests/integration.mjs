@@ -6,6 +6,8 @@ const browser=await chromium.launch({channel:'chrome',headless:true,args:['--ena
 const page=await browser.newPage({viewport:{width:1440,height:1100}});
 try {
   await page.goto('http://127.0.0.1:5173');
+  await page.route('https://needcoolershoes.com/**',r=>r.abort('failed'));
+  await page.route('https://api.minetools.eu/**',r=>r.abort('failed'));
   await page.waitForFunction(()=>!document.querySelector('#generate').disabled);
   const data=await page.evaluate(async()=>{
     const {SkinViewer}=await import('/node_modules/.vite/deps/skinview3d.js');

@@ -133,10 +133,10 @@ $('#account-form').addEventListener('submit',async event=>{
   if(!/^[A-Za-z0-9_]{1,16}$/.test(name)){accountStatus('请输入 1–16 位字母、数字或下划线组成的游戏名。',true);$('#username').focus();return;}
   const sequence=++loadSequence;
   state.querying=true; $('#lookup').disabled=true; $('#lookup span:nth-child(2)').textContent='正在获取皮肤…'; updateGenerate();
-  accountStatus('正在连接 Mojang，必要时将尝试兼容查询…');
+  accountStatus('正在查询皮肤，自动选择可用服务…');
   try {
     const account=await lookupAccount(name);
-    const image=await loadSkinImage(account.url);
+    const image=account.image;
     if(sequence!==loadSequence)return;
     viewer.loadSkin(image,{model:account.model});
     state.skin=image; state.detectedModel=account.model; state.name=account.name;

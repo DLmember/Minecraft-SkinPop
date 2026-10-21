@@ -1,61 +1,83 @@
 class AccountNotFound extends Error {}
 
-async function getJSON(url, timeout = 6500) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(timeout), credentials: 'omit' });
-  if (response.status === 404 || response.status === 204) throw new AccountNotFound('没有找到这个正版账号，请检查游戏名。');
-  if (response.status === 429) throw new Error('查询太频繁了，请稍后再试。');
-  if (!response.ok) throw new Error(`查询服务暂不可用（${response.status}）`);
-  return response.json();
+async function request(url, signal) {
+  const response=await fetch(url,{signal,credentials:'omit'});
+  if(response.status===404||response.status===204)throw new AccountNotFound('没有找到这个正版账号，请检查游戏名。');
+  if(!response.ok)throw new Error('皮肤服务暂不可用（'+response.status+'）');
+  return response;
+}
+const json=async(url,signal)=>(await request(url,signal)).json();
+function skinAccount(name,uuid,source,skin){
+  if(!skin?.url)throw new Error('没有可用的皮肤信息');
+  return {name,uuid,source,model:skin.metadata?.model==='slim'?'slim':'default',url:skin.url.replace(/^http:/,'https:')};
+}
+const providers=[
+  {delay:0,async run(name,signal){
+    const response=await request('https://needcoolershoes.com/api/skin/'+encodeURIComponent(name),signal);
+    const uuid=response.headers.get('x-needcoolershoes-uuid'),model=response.headers.get('x-needcoolershoes-model');
+    if(!/^[a-f0-9]{32}$/i.test((uuid||'').replaceAll('-',''))||!['classic','slim'].includes(model))throw new Error('皮肤服务缺少账号或模型信息');
+    const image=await loadSkinImage(await response.blob(),signal);
+    return {name,uuid,source:'NeedCoolerShoes',model:model==='slim'?'slim':'default',image};
+  }},
+  {delay:250,async run(name,signal){
+    const account=await json('https://api.mojang.com/users/profiles/minecraft/'+encodeURIComponent(name),signal);
+    const profile=await json('https://sessionserver.mojang.com/session/minecraft/profile/'+account.id,signal);
+    const property=profile.properties?.find(p=>p.name==='textures');
+    if(!property)throw new Error('没有可用的皮肤信息');
+    return skinAccount(account.name,account.id,'Mojang',JSON.parse(atob(property.value)).textures?.SKIN);
+  }},
+  {delay:600,async run(name,signal){
+    const account=await json('https://api.ashcon.app/mojang/v2/user/'+encodeURIComponent(name),signal);
+    const skin=account.textures?.skin;
+    if(!skin)throw new Error('没有可用的皮肤信息');
+    return {name:account.username,uuid:account.uuid,source:'Ashcon 兼容查询',model:account.textures.slim?'slim':'default',url:skin.data?'data:image/png;base64,'+skin.data:skin.url?.replace(/^http:/,'https:')};
+  }},
+  {delay:1000,async run(name,signal){
+    const account=await json('https://api.minetools.eu/uuid/'+encodeURIComponent(name),signal);
+    if(account.status==='ERR'&&!account.id)throw new AccountNotFound('没有找到这个正版账号，请检查游戏名。');
+    if(!account.id)throw new Error('兼容查询暂不可用');
+    const profile=await json('https://api.minetools.eu/profile/'+account.id,signal);
+    return skinAccount(account.name,account.id,'Minetools 兼容查询',profile.decoded?.textures?.SKIN);
+  }},
+];
+
+function delay(ms,signal){
+  return new Promise((resolve,reject)=>{
+    const abort=()=>{clearTimeout(timer);reject(signal.reason);};
+    const timer=setTimeout(()=>{signal.removeEventListener('abort',abort);resolve();},ms);
+    if(signal.aborted)abort();else signal.addEventListener('abort',abort,{once:true});
+  });
 }
 
-export async function lookupAccount(name) {
-  if (!/^[a-zA-Z0-9_]{1,16}$/.test(name)) throw new Error('游戏名应为 1–16 位英文字母、数字或下划线。');
-  let officialError;
+export async function lookupAccount(name){
+  if(!/^[a-zA-Z0-9_]{1,16}$/.test(name))throw new Error('游戏名应为 1–16 位英文字母、数字或下划线。');
+  const controller=new AbortController();
+  // One deadline covers lookup, body download and image decode for every provider.
+  const timer=setTimeout(()=>controller.abort(new DOMException('查询超时','TimeoutError')),10000);
+  const signal=controller.signal;
   try {
-    const account = await getJSON(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(name)}`);
-    const profile = await getJSON(`https://sessionserver.mojang.com/session/minecraft/profile/${account.id}`);
-    const property = profile.properties?.find(p => p.name === 'textures');
-    if (!property) throw new Error('这个账号没有可用的皮肤信息。');
-    const skin = JSON.parse(atob(property.value)).textures?.SKIN;
-    if (!skin?.url) throw new Error('这个账号没有可用的皮肤信息。');
-    return { name: account.name, uuid: account.id, source: 'Mojang', model: skin.metadata?.model === 'slim' ? 'slim' : 'default', url: skin.url.replace(/^http:/, 'https:') };
-  } catch (error) {
-    if (error instanceof AccountNotFound) throw error;
-    officialError = error;
-  }
-  let compatibilityError;
-  try {
-    const account = await getJSON(`https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(name)}`, 9000);
-    if (!account.textures?.skin) throw new Error('这个账号没有可用的皮肤信息。');
-    return { name: account.username, uuid: account.uuid, source: 'Ashcon 兼容查询', model: account.textures.slim ? 'slim' : 'default', url: account.textures.skin.data ? `data:image/png;base64,${account.textures.skin.data}` : account.textures.skin.url.replace(/^http:/, 'https:') };
-  } catch (error) {
-    if (error instanceof AccountNotFound) throw error;
-    compatibilityError = error;
-  }
-  try {
-    const account = await getJSON(`https://api.minetools.eu/uuid/${encodeURIComponent(name)}`);
-    if (account.status === 'ERR' && !account.id) throw new AccountNotFound('没有找到这个正版账号，请检查游戏名。');
-    if (!account.id) throw new Error('兼容查询暂不可用');
-    const profile = await getJSON(`https://api.minetools.eu/profile/${account.id}`);
-    const skin = profile.decoded?.textures?.SKIN;
-    if (!skin?.url) throw new Error('没有可用的皮肤信息');
-    return { name: account.name, uuid: account.id, source: 'Minetools 兼容查询', model: skin.metadata?.model === 'slim' ? 'slim' : 'default', url: skin.url.replace(/^http:/, 'https:') };
-  } catch (error) {
-    if (error instanceof AccountNotFound) throw error;
-    if ([officialError,compatibilityError,error].some(e=>e?.message?.includes('频繁'))) throw new Error('查询服务繁忙，请稍后再试，或上传本地皮肤。');
-    throw new Error('暂时无法连接皮肤服务，请稍后重试，或上传本地 PNG 皮肤。');
-  }
+    return await Promise.any(providers.map(async provider=>{
+      await delay(provider.delay,signal);
+      const account=await provider.run(name,signal);
+      if(!account.image)account.image=await loadSkinImage(account.url,signal);
+      signal.throwIfAborted();
+      return account;
+    }));
+  }catch(error){
+    if(error.errors?.every(e=>e instanceof AccountNotFound))throw new AccountNotFound('没有找到这个正版账号，请检查游戏名。');
+    throw new Error('暂时无法加载皮肤，请稍后重试，或上传本地 PNG 皮肤。');
+  }finally{clearTimeout(timer);controller.abort();}
 }
 
-export async function loadSkinImage(source) {
+export async function loadSkinImage(source, signal) {
   let blob;
-  if (source instanceof File) {
+  if (source instanceof Blob) {
     if (source.size > 8 * 1024 * 1024) throw new Error('皮肤文件不能超过 8 MB。');
     const bytes = new Uint8Array(await source.slice(0, 8).arrayBuffer());
     if (bytes.join(',') !== '137,80,78,71,13,10,26,10') throw new Error('请选择真正的 PNG 格式皮肤。');
     blob = source;
   } else {
-    const response = await fetch(source, { signal: AbortSignal.timeout(10000), credentials: 'omit' });
+    const response = await fetch(source, { signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8000)]) : AbortSignal.timeout(8000), credentials: 'omit' });
     if (!response.ok) throw new Error('皮肤图片下载失败，请重试或上传本地皮肤。');
     blob = await response.blob();
   }

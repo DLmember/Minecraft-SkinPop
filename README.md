@@ -58,13 +58,9 @@ npm run build:local
 
 ## 账号查询与跨域
 
-优先使用 Mojang 官方流程：
+优先尝试 NeedCoolerShoes 的 `/api/skin/{name}`，一次请求返回完整 PNG，并从响应头读取 UUID 和 classic/slim 模型。250 / 600 / 1000 ms 后分别启动 Mojang、Ashcon、Minetools；采用最先完成查询、图片下载、解码和尺寸验证的结果，取消其余请求，总请求期限为 10 秒。单个服务返回 404、图片下载失败或图片损坏，不会阻止其他服务继续尝试。
 
-1. `api.mojang.com/users/profiles/minecraft/{name}` 获取 UUID。
-2. `sessionserver.mojang.com/session/minecraft/profile/{uuid}` 获取 textures 属性。
-3. 解码 textures，读取皮肤地址和 `metadata.model`，从官方纹理服务器下载皮肤。
-
-Mojang 的部分接口在浏览器中可能禁止跨域，或返回限流错误。纯静态网页无法自行绕过浏览器限制，因此依次提供 Ashcon、Minetools 兼容查询。界面会注明实际来源，兼容服务可能返回缓存数据。仅在用户提交游戏名时查询服务，不向远端上传本地皮肤或生成结果。
+第三方服务可能有缓存，无法保证刚更换的皮肤立即同步。不会用默认皮肤冒充查询成功。只在提交游戏名时请求服务，本地皮肤和动图不上传。
 
 如果所有服务都不可用，保留当前皮肤并显示错误；仍可使用本地上传。账号查询仅针对 Java 版游戏名，不能用微软邮箱或基岩版 Xbox 名称查询。网络条件、上游限流和服务可用性会影响查询。
 
@@ -76,6 +72,7 @@ Vite + 原生 JavaScript，skinview3d / Three.js 渲染双层皮肤，gifenc 逐
 node tests/smoke.mjs
 node tests/integration.mjs
 node tests/eating.mjs
+node tests/skin-fallback.mjs
 node tests/export-regression.mjs
 node tests/offline-batch.mjs
 ```
