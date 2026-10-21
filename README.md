@@ -19,9 +19,9 @@ npm run dev
 
 ## 静态部署
 
-在线网站：https://dlmember.github.io/minecraft-skin-gif/
+在线网站：https://dlmember.github.io/Minecraft-SkinPop/
 
-GitHub 仓库：https://github.com/DLmember/minecraft-skin-gif
+GitHub 仓库：https://github.com/DLmember/Minecraft-SkinPop
 
 GitHub Pages 从 `main` 分支的 `docs/` 目录发布。修改后运行 `npm run build:local` 更新本地单文件，再运行 `npm run build:pages` 更新网站文件，将改动提交并推送到 GitHub 即可发布。
 
