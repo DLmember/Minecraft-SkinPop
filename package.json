@@ -1,0 +1,24 @@
+{
+  "name": "skinpop-minecraft-gif",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:pages": "vite build && node scripts/build-pages.mjs",
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "build:local": "vite build && powershell -NoProfile -Command \"Copy-Item -Force dist/index.html SkinPop.html\"",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "gifenc": "^1.0.3",
+    "skinview3d": "3.4.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "gifuct-js": "^2.1.2",
+    "vite": "^7.1.0",
+    "vite-plugin-singlefile": "^2.3.4"
+  }
+}

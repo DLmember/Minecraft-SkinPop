@@ -1,0 +1,102 @@
+{
+  "version": "Minecraft Java Edition 1.21.4",
+  "source": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft",
+  "files": {
+    "generic_0.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/generic_0.png",
+      "sha256": "040799acfd2e753632cef5642ab07e0182a973cc990cbfcb6bf7d201f10cfa03"
+    },
+    "generic_1.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/generic_1.png",
+      "sha256": "85fb6789e97a9385e823a6da6f6fbdd376c6e8165a449e8f1613ef34592afb2e"
+    },
+    "generic_2.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/generic_2.png",
+      "sha256": "b685389739d5add8d9240511f15b60e3365262c9e557b80fc3bf352dc30564a2"
+    },
+    "generic_3.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/generic_3.png",
+      "sha256": "0988037438acb1dab7e583e6e17dbdc0d47c51721d237ea628311fc7ae3e355a"
+    },
+    "generic_4.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/generic_4.png",
+      "sha256": "2cacbc3e1b3297b34997fdb46aa35bbc3597d4f1a608f7412aa843a22bfb4a28"
+    },
+    "generic_5.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/generic_5.png",
+      "sha256": "ea3bb652d7604349517ceb17061b0007578ff70f86e1adc5e823da767a315fcf"
+    },
+    "generic_6.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/generic_6.png",
+      "sha256": "1d0bce47b910d93d60de34deca732abeeea2dcdf0d2ed16bf8881f1f2ee92442"
+    },
+    "generic_7.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/generic_7.png",
+      "sha256": "858a9804aef73be823a616e0faf518ee425421a20ffbb68f2a686ac76c017ca3"
+    },
+    "explosion_3.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_3.png",
+      "sha256": "ef8ff4cd588bd67765db9d409220706c4730cea00570d51f5fcd26fd77a3557f"
+    },
+    "explosion_2.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_2.png",
+      "sha256": "59d5544b399a134628fb650cbd40236b3fce87184c8184b0e363bf6f0e61c159"
+    },
+    "explosion_0.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_0.png",
+      "sha256": "3e2ca80f6accdcf50f580df2e8777ada3279ea9b6c74c28028e1bb2d2edb9140"
+    },
+    "explosion_1.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_1.png",
+      "sha256": "06b235749d132ff1ff4e946341c4eb56deb09feaa5f49cbb430383b0bbe4f292"
+    },
+    "explosion_5.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_5.png",
+      "sha256": "42a75efcb1b91104cb2e89ad6cc69670f0ad60b856c818887e2e629ff9d032e8"
+    },
+    "explosion_7.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_7.png",
+      "sha256": "3a41ac85c7f7a4b123e78074b7bfb57d2686ff902298f17ecd875d6265b7c253"
+    },
+    "explosion_4.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_4.png",
+      "sha256": "dfdf936f13d93ace338f4ab287d5cf9a47f8c14df70a916c52412c4d26de41a6"
+    },
+    "explosion_6.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_6.png",
+      "sha256": "b6a40db64a88e925c10f3e36b38bbe40c06a1370ee3d09258455fa8c9af28b6c"
+    },
+    "explosion_11.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_11.png",
+      "sha256": "4be5b0241d6091fd8da22221173251811e9765813d55c39283ec65ffb5a512b4"
+    },
+    "explosion_8.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_8.png",
+      "sha256": "1b1683dc3e20b5680b31b5ab7a1c5ea96984a7e885a03f0c82ea57d3bc0fae25"
+    },
+    "explosion_10.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_10.png",
+      "sha256": "e166b8ab4d3821dae540daaa8cfb073b44966a87383e26c64a8ca9750301468d"
+    },
+    "explosion_9.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_9.png",
+      "sha256": "3dbf49687edcb58dea2f10de63981cdfdcfc90f0522cca22a1cafd90afa094d1"
+    },
+    "explosion_13.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_13.png",
+      "sha256": "30235f3ab1ca0c28b2b203adc733d552df55cde8fe331400f25a564237d88327"
+    },
+    "explosion_14.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_14.png",
+      "sha256": "89ab701df00d106141803f9f839a463d0023bf3aa9998ab4f74eaebecef9b6c8"
+    },
+    "explosion_12.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_12.png",
+      "sha256": "1e6ff0498e6b03548fdaaa5be79784c62a5ee0c15920cc46be4a9fa38ef946fe"
+    },
+    "explosion_15.png": {
+      "url": "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/particle/explosion_15.png",
+      "sha256": "94d0bbc38b84298316831ea5da745747699036261a57d354cefd9fe755289a19"
+    }
+  }
+}
