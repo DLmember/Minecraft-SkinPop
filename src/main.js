@@ -6,7 +6,7 @@ import { motions, createSword, applyPose, configureCamera, motionIllustration } 
 import { exportGif } from './export.js';
 import { zipSync } from 'fflate';
 import { prepareEffects } from './effects.js';
-import { motionTiming, loadDurations, saveDurations } from './timing.js';
+import { motionTiming, loadDurations, saveDurations, usesBpm } from './timing.js';
 
 const $ = selector => document.querySelector(selector);
 const icons = {
@@ -44,6 +44,10 @@ function updateGenerate() {
   if(!state.busy){$('#generate span:nth-child(2)').textContent=ready?'下载 GIF':'生成 GIF';$('#generate').style.setProperty('--progress',ready?'100%':'0%');}
  $('#generate').disabled=$('#download-all').disabled=!viewer || state.querying || state.busy; }
 function updateTimingControls(){
+  const bpm=usesBpm(state.motion);
+  $('#duration-row').hidden=bpm;$('#bpm-row').hidden=!bpm;
+  $('#bpm').value=String(Number((120/durations[state.motion]).toFixed(1)));
+  $('#bpm').disabled=state.busy;
   const fast=state.motion==='sneak';
   $('#fps').disabled=state.busy||fast;
   $('#duration').disabled=state.busy;
@@ -181,6 +185,16 @@ $('#duration').addEventListener('change',()=>{
   if(!saveDurations(durations))toast('当前浏览器无法保存设置；本次打开期间仍会记住各动作时长。');
   state.phase=0;invalidate();
 });
+$('#bpm').addEventListener('change',()=>{
+  const bpm=Math.round(Number($('#bpm').value)*10)/10;
+  if(!Number.isFinite(bpm)||bpm<=0||!Number.isFinite(120/bpm)){
+    toast('请输入大于 0 的 BPM，支持一位小数。');updateTimingControls();return;
+  }
+  $('#bpm').value=String(bpm);
+  durations[state.motion]=120/bpm;
+  if(!saveDurations(durations))toast('当前浏览器无法保存设置；本次打开期间仍会记住各动作速度。');
+  state.phase=0;invalidate();
+});
 
 // Move real DOM nodes so mobile reading and keyboard order match the visual order.
 const mobileLayout=matchMedia('(max-width:740px)');
@@ -204,7 +218,7 @@ $('#generate').addEventListener('click',async()=>{
   $('#generate span:nth-child(2)').textContent='正在生成 · 0%';$('#generate').style.setProperty('--progress','0%');$('#generate').setAttribute('aria-busy','true');
   $('#progress').value=0;$('#progress-label').textContent='准备中…';
   exportController=new AbortController();
-  const size=Number($('#resolution').value),fps=Number($('#fps').value),duration=Number($('#duration').value);
+  const size=Number($('#resolution').value),fps=Number($('#fps').value),duration=durations[state.motion];
   const version=state.version;
   try {
     const blob=await exportGif({skin:state.skin,model:effectiveModel(),outer:$('#outer-layer').checked,motion:state.motion,background:state.background,size,fps,duration,camera:viewer.camera,signal:exportController.signal,onProgress:(value,label)=>{$('#generate').style.setProperty('--progress',value+'%');$('#generate span:nth-child(2)').textContent=`${label} · ${value}%`;$('#progress').value=value;$('#progress-label').textContent=`${label} · ${value}%`;}});

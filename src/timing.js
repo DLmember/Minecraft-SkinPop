@@ -2,12 +2,16 @@ export const DURATIONS = [.5,.6,1,1.5,1.6,2,3,4];
 export const DEFAULT_DURATIONS = Object.freeze({spin:1.5,head:1.5,walk:2,slash:1,eat:1.6,waist:.6,sneak:2,squash:1,sit:1,death:2,revive:2,explode:2});
 export const DURATION_STORAGE_KEY = 'skinpop.motion-durations.v1';
 export const SNEAK_REPEATS = 10;
+export const usesBpm = id => id==='waist'||id==='squash';
 
 export function loadDurations(){
   const durations={...DEFAULT_DURATIONS};
   try {
     const saved=JSON.parse(localStorage.getItem(DURATION_STORAGE_KEY));
-    for(const id of Object.keys(durations))if(DURATIONS.includes(saved?.[id]))durations[id]=saved[id];
+    for(const id of Object.keys(durations)){
+      const value=saved?.[id];
+      if(usesBpm(id)?Number.isFinite(value)&&value>0:DURATIONS.includes(value))durations[id]=value;
+    }
   } catch { /* Local files can have unavailable storage or invalid saved data. */ }
   return durations;
 }

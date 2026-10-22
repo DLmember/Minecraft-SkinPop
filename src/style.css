@@ -24,3 +24,5 @@ footer{flex-wrap:wrap;gap:12px}.github-link{display:inline-flex;align-items:cent
 @media(min-width:741px){.workspace{grid-template-rows:auto 1fr;align-items:start}.skin-settings{grid-column:1;grid-row:1}.export-settings{grid-column:1;grid-row:2}.studio{grid-column:2;grid-row:1 / span 2}}
 @media(max-width:740px){.studio:empty{display:none}.workspace>.motion-section,.workspace>.preview-card,.workspace>.tip-banner{width:100%;margin-top:0}}
 .generate-button{position:relative;isolation:isolate;overflow:hidden}.generate-button:before{content:'';position:absolute;inset:0 auto 0 0;width:var(--progress,0%);background:rgba(18,66,139,.28);z-index:-1;transition:width .12s linear}.generate-button:disabled{opacity:1}.generate-button[aria-busy=true]{cursor:progress}
+.speed-row input{font-size:12px;padding:6px 8px;width:144px}
+#bpm-row label{white-space:nowrap}#bpm-row input{width:96px;flex-shrink:0}

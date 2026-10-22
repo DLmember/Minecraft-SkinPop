@@ -10,11 +10,11 @@ try{
  const order=await page.evaluate(()=>['.skin-settings','.motion-section','.preview-card','.export-settings'].map(s=>document.querySelector(s).getBoundingClientRect().top));
  assert(order.every((y,i)=>!i||y>order[i-1]));assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.screenshot({path:'artifacts/revision-mobile.png',fullPage:true});
- await page.locator('[data-motion="waist"]').click();await page.locator('#resolution').selectOption('256');await page.locator('#duration').selectOption('0.5');
+ await page.locator('[data-motion="waist"]').click();await page.locator('#resolution').selectOption('256');await page.locator('#bpm').fill('240');await page.locator('#bpm').press('Tab');
  await page.locator('#generate').click();assert.equal(await page.locator('#generate').getAttribute('aria-busy'),'true');assert.equal(await page.locator('#export-progress').isVisible(),false);
  await page.waitForFunction(()=>document.querySelector('#generate').textContent.includes('下载 GIF'));
  const download=page.waitForEvent('download');await page.locator('#generate').click();await(await download).saveAs('artifacts/waist-review.gif');
- await page.locator('#duration').selectOption('1');assert.match(await page.locator('#generate').innerText(),/生成 GIF/);
+ await page.locator('#bpm').fill('120');await page.locator('#bpm').press('Tab');assert.match(await page.locator('#generate').innerText(),/生成 GIF/);
  await page.locator('#generate').click();await page.locator('#cancel-export').click();await page.waitForFunction(()=>!document.querySelector('#generate').disabled);assert.match(await page.locator('#generate').innerText(),/生成 GIF/);
  await page.setViewportSize({width:1440,height:1100});assert.equal(await page.locator('.studio .preview-card').count(),1);assert.equal(await page.locator('.studio .motion-section').count(),1);
  await page.locator('[data-motion="eat"]').click();await page.waitForTimeout(500);await page.locator('#pause').click();await page.locator('#stage').screenshot({path:'artifacts/revision-eating.png'});
