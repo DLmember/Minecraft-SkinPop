@@ -1,5 +1,5 @@
-export const DURATIONS = [.5,1,1.5,1.6,2,3,4];
-export const DEFAULT_DURATIONS = Object.freeze({spin:1.5,head:1.5,walk:2,slash:1,eat:1.6,sneak:2,squash:1,sit:1,death:2,revive:2,explode:2});
+export const DURATIONS = [.5,.6,1,1.5,1.6,2,3,4];
+export const DEFAULT_DURATIONS = Object.freeze({spin:1.5,head:1.5,walk:2,slash:1,eat:1.6,waist:.6,sneak:2,squash:1,sit:1,death:2,revive:2,explode:2});
 export const DURATION_STORAGE_KEY = 'skinpop.motion-durations.v1';
 export const SNEAK_REPEATS = 10;
 

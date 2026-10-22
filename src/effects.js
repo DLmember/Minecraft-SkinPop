@@ -93,9 +93,10 @@ export function applyExplosion(viewer,phase){
   const fx=getEffects(viewer),player=viewer.playerObject;
   if(phase<.6){
     const charge=phase/.6;
-    const swell=1+.12*charge*charge;
-    player.scale.set(swell,1+.08*charge,swell);
-    player.position.set(Math.sin(charge*94)*.6*charge,16*(player.scale.y-1),charge*20);
+    const swell=1+.85*.25*charge*charge;
+    player.scale.setScalar(swell);
+    // PlayerObject origin is the standing model's geometric centre.
+    player.position.set(0,0,0);
     player.rotation.z=Math.sin(charge*81)*.025*charge;
     fx.color.value.setRGB(1,1,1);
     fx.tint.value=Math.floor(charge*10)%2===1?.85:0;
@@ -109,6 +110,6 @@ export function applyExplosion(viewer,phase){
     const frame=Math.min(15,Math.floor(age*16));
     const theta=i*2.39996;
     const radius=i===0?0:4+age*5;
-    showParticle(viewer,fx,i,`explosion_${frame}`,[Math.cos(theta)*radius,Math.sin(theta)*radius,19+i*.15],i===0?29:15+i%3*2,1-i*.035);
+    showParticle(viewer,fx,i,`explosion_${frame}`,[Math.cos(theta)*radius,Math.sin(theta)*radius,i*.15],i===0?29:15+i%3*2,1-i*.035);
   }
 }

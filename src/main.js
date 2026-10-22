@@ -36,10 +36,13 @@ let viewer, sword, lastTime=performance.now(), toastTimer, loadSequence=0;
 
 function toast(message) { $('#toast').textContent=message; $('#toast').hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>$('#toast').hidden=true,4500); }
 function accountStatus(message,error=false) { $('#account-status').classList.toggle('error',error); $('#account-status span:last-child').textContent=message; }
-function invalidate() { state.version++; if(!$('#gif-result').hidden) showLive(); }
+function invalidate() { state.version++; updateGenerate(); if(!$('#gif-result').hidden) showLive(); }
 function effectiveModel() { return $('#model').value==='auto' ? state.detectedModel : $('#model').value; }
 function updateModelBadge() { $('#model-badge').textContent=`${viewer?.playerObject.skin.modelType==='slim'?'ALEX':'STEVE'} · ${$('#outer-layer').checked?'双层皮肤':'仅内层'}`; }
-function updateGenerate() { $('#generate').disabled=$('#download-all').disabled=!viewer || state.querying || state.busy; }
+function updateGenerate() {
+  const ready=state.resultUrl&&state.resultVersion===state.version;
+  if(!state.busy){$('#generate span:nth-child(2)').textContent=ready?'下载 GIF':'生成 GIF';$('#generate').style.setProperty('--progress',ready?'100%':'0%');}
+ $('#generate').disabled=$('#download-all').disabled=!viewer || state.querying || state.busy; }
 function updateTimingControls(){
   const fast=state.motion==='sneak';
   $('#fps').disabled=state.busy||fast;
@@ -179,23 +182,32 @@ $('#duration').addEventListener('change',()=>{
   state.phase=0;invalidate();
 });
 
+// Move real DOM nodes so mobile reading and keyboard order match the visual order.
+const mobileLayout=matchMedia('(max-width:740px)');
+const workspace=$('.workspace'),studio=$('.studio'),exportSettings=$('.export-settings');
+function arrangeLayout(){
+  if(mobileLayout.matches){workspace.append($('.motion-section'),$('.preview-card'),exportSettings,$('.tip-banner'));}
+  else {studio.append($('.preview-card'),$('.motion-section'),$('.tip-banner'));workspace.insertBefore(exportSettings,studio);}
+}
+mobileLayout.addEventListener('change',arrangeLayout);arrangeLayout();
 let exportController;
 $('#generate').addEventListener('click',async()=>{
   if(!viewer || state.busy || state.querying)return;
+  if(state.resultUrl&&state.resultVersion===state.version){$('#download').click();return;}
   state.busy=true; document.body.classList.add('busy');showLive();
   // Disable actual controls as well as pointer input, including keyboard navigation.
   const controls=[...document.querySelectorAll('.settings input,.settings select,.settings button,.motion-card,#reset-view,#pause,#download-all')];
   controls.forEach(el=>el.disabled=true);
   viewer.controls.enabled=false;
   $('#cancel-export').hidden=false;$('#cancel-export').disabled=false;
-  $('#export-progress').hidden=false;
-  $('#generate span:nth-child(2)').textContent='正在生成…';
+  $('#export-progress').hidden=true;
+  $('#generate span:nth-child(2)').textContent='正在生成 · 0%';$('#generate').style.setProperty('--progress','0%');$('#generate').setAttribute('aria-busy','true');
   $('#progress').value=0;$('#progress-label').textContent='准备中…';
   exportController=new AbortController();
   const size=Number($('#resolution').value),fps=Number($('#fps').value),duration=Number($('#duration').value);
   const version=state.version;
   try {
-    const blob=await exportGif({skin:state.skin,model:effectiveModel(),outer:$('#outer-layer').checked,motion:state.motion,background:state.background,size,fps,duration,camera:viewer.camera,signal:exportController.signal,onProgress:(value,label)=>{$('#progress').value=value;$('#progress-label').textContent=`${label} · ${value}%`;}});
+    const blob=await exportGif({skin:state.skin,model:effectiveModel(),outer:$('#outer-layer').checked,motion:state.motion,background:state.background,size,fps,duration,camera:viewer.camera,signal:exportController.signal,onProgress:(value,label)=>{$('#generate').style.setProperty('--progress',value+'%');$('#generate span:nth-child(2)').textContent=`${label} · ${value}%`;$('#progress').value=value;$('#progress-label').textContent=`${label} · ${value}%`;}});
     if(state.resultUrl)URL.revokeObjectURL(state.resultUrl);
     state.resultUrl=URL.createObjectURL(blob);state.resultVersion=version;
     const timing=motionTiming(state.motion,fps,duration);
@@ -207,7 +219,7 @@ $('#generate').addEventListener('click',async()=>{
   finally {
     state.busy=false; document.body.classList.remove('busy'); controls.forEach(el=>el.disabled=false);
     viewer.controls.enabled=true;updateTimingControls();$('#cancel-export').hidden=true;$('#export-progress').hidden=true;
-    $('#generate span:nth-child(2)').textContent='生成 GIF';updateGenerate();
+    $('#generate').removeAttribute('aria-busy');updateGenerate();
   }
 });
 $('#cancel-export').addEventListener('click',()=>{exportController?.abort();state.batchController?.abort();});

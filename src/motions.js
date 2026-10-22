@@ -1,4 +1,4 @@
-import { Group, BoxGeometry, Mesh, MeshStandardMaterial } from 'three';
+import { Group, BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import swordPixels from './assets/diamond_sword.json';
 import { resetEffects, applyDeath, applyExplosion } from './effects.js';
 import { SNEAK_REPEATS } from './timing.js';
@@ -9,13 +9,14 @@ export const motions = [
   { id: 'head', title: '头部旋转', subtitle: '俯视 · 360°', caption: '斜上方俯视头部', camera: [14, 26, 23], target: [0, 12, 0] },
   { id: 'walk', title: '行走', subtitle: '侧视 · 循环', caption: '斜侧方行走', camera: [36, 0, 58], target: [0, 0, 0] },
   { id: 'slash', title: '钻石剑跳劈', subtitle: '侧视 · 跳跃攻击', caption: '持钻石剑跳跃攻击', camera: [40, 3, 66], target: [0, 3, 0] },
+  { id: 'waist', title: '扭腰', subtitle: '潜行 · 左右摆动', camera: [28, 0, 62], target: [0, 0, 0] },
   { id: 'eat', title: '吃苹果', subtitle: '侧视 · 原版苹果', camera: [-36, 0, 58], target: [0, 0, 0] },
   { id: 'sneak', title: '快速潜行', subtitle: '站 / 蹲直接切换', caption: '每个循环完成 10 次站蹲，可调整循环时长', camera: [36, 0, 58], target: [0, 0, 0] },
   { id: 'squash', title: '旋转压缩', subtitle: '高度 100%–40%', caption: '平视旋转，余弦曲线压缩高度', camera: [0, 0, 63], target: [0, 0, 0] },
   { id: 'sit', title: '坐姿点头', subtitle: '侧视 · 线性点头', caption: '坐姿，每个循环匀速点头两次', camera: [36, -4, 58], target: [0, -4, 0] },
   { id: 'death', title: '死亡', subtitle: '倒地 · 消失 · 烟雾', caption: '受伤变红、侧倒、消失并出现原版烟雾', camera: [38, -3, 62], target: [0, -3, 0] },
   { id: 'revive', title: '复活', subtitle: '死亡倒放', caption: '倒放死亡动作：烟雾收拢、人物出现并起身', camera: [38, -3, 62], target: [0, -3, 0] },
-  { id: 'explode', title: '爆炸', subtitle: '靠近 · 闪烁 · 爆炸', caption: '靠近镜头并抖动闪烁，随后出现原版爆炸粒子', camera: [0, 0, 72], target: [0, 0, 0] },
+  { id: 'explode', title: '爆炸', subtitle: '膨胀 · 闪烁 · 爆炸', caption: '原地膨胀后爆炸', camera: [0, 0, 72], target: [0, 0, 0] },
 ];
 
 export function createSword() {
@@ -63,6 +64,42 @@ export function applyPose(viewer, sword, id, phase) {
   sword.visible = id === 'slash';
   sword.position.x = skin.modelType === 'slim' ? -.5 : -1;
   const angle = phase * TAU;
+  if(id==='waist'){
+    // Reference: DetailedAnimationsXJustExpressions player.jem SneakyDance,
+    // steady intensity .15, opposite leg roll and delayed head/arm sway.
+    const sway=Math.sin(angle)*.15,bob=-Math.cos(angle*2)*.15;
+    // Adapt CEM's roll to the viewer's opposite Y axis. In particular, copying
+    // both leg tx and rz verbatim doubles foot travel instead of cancelling it.
+    // Vanilla crouch pitch .5 plus the pack's -.15 body pitch = .35 radians.
+    const bodyY=-1.5+bob;
+    skin.body.rotation.set(.35,0,-sway);
+    // Minecraft rotates its torso about the upper pivot; skinview3d uses its
+    // centre. Move that centre with the rotated half-height vector.
+    skin.body.position.set(-6*Math.sin(sway),bodyY-3.2-6*Math.cos(sway)*Math.cos(.35),-6*Math.cos(sway)*Math.sin(.35));
+    skin.head.position.set(0,bodyY-4.2,0);
+    skin.head.rotation.set(Math.cos(angle*2-.5)*.015,0,-Math.sin(angle-.5)*.075);
+    for(const [part,side] of [[skin.leftArm,1],[skin.rightArm,-1]]){
+      part.rotation.set(.4-Math.PI/36+(side===-1?.1:0),0,side*.1-Math.sin(angle-.25)*.15);
+      part.position.x-=sway*3;part.position.y+=bodyY-3.2+.5+side*sway*3;part.position.z=.75/.8;
+    }
+    for(const leg of [skin.leftLeg,skin.rightLeg]){
+      leg.rotation.set(0,0,sway);
+      // Source tx=-12*sway is the small-angle hip displacement. Resolve the
+      // same 12-pixel leg exactly so the sole centre stays planted throughout.
+      leg.position.x-=12*Math.sin(sway);
+      leg.position.y=-24+12*Math.cos(sway);
+    }
+    // Keep the pelvis attached to the planted legs. The original game's torso
+    // and this viewer use different pivots; a shoulder-pivot translation alone
+    // leaves the torso's lower face behind the hips when viewed from the side.
+    const pelvis=skin.leftLeg.position.clone().add(skin.rightLeg.position).multiplyScalar(.5);
+    // Small overlap covers the opposing slopes of rigid torso/leg cubes.
+    pelvis.y-=.85;
+    const torsoBottom=new Vector3(0,-6,0).applyQuaternion(skin.body.quaternion).add(skin.body.position);
+    const correction=pelvis.sub(torsoBottom);
+    for(const part of [skin.body,skin.head,skin.leftArm,skin.rightArm])part.position.add(correction);
+    return;
+  }
   if(id==='eat'){applyEating(viewer,phase);return;}
   if(id==='death'){applyDeath(viewer,phase);return;}
   if(id==='revive'){applyDeath(viewer,1-phase);return;}
@@ -127,6 +164,7 @@ export function motionIllustration(id) {
   const person = `<g shape-rendering="crispEdges"><path fill="#6d91bf" d="M24 8h16v15H24z"/><path fill="#b3d0ef" d="M24 11h13v11H24z"/><path fill="#577ba8" d="M27 15h2v2h-2zm7 0h2v2h-2z"/><path fill="#8bb9e8" d="M24 24h15v16H24z"/><path fill="#6d91bf" d="M24 40h6v13h-6zm9 0h6v13h-6z"/><path fill="#a5c8ed" d="M18 24h5v16h-5zm22 0h5v16h-5z"/></g>`;
   const drawings = {
     sit: `<g transform="translate(0 3)">${person}</g><path d="M24 43h20v6H24z" fill="#6d91bf"/><path d="m49 13 3-3 3 3m-3-3v12m-3-3 3 3 3-3" stroke="#9ab9de" stroke-width="2"/>`,
+    waist: person + '<path d="M9 34h10m-4-4 4 4-4 4m32-4h10m-4-4 4 4-4 4" fill="none" stroke="#8eafd5" stroke-width="2"/>',
     eat: person + '<path d="M40 23h5v-3h5v3h5v4h2v9h-3v3H43v-3h-3z" fill="#d75959"/><path d="M47 18h3v5h-3z" fill="#7f674b"/><path d="M49 17h6v3h-6z" fill="#8ab98c"/><path d="M43 26h3v6h-3z" fill="#f4aaa2"/>',
     death: `<g transform="translate(43 10) rotate(72) scale(.72)">${person}</g><path d="M43 36h7v-7h8v-7h-7v7h-8z" fill="#c5cfdf"/>`,
     revive: person + '<path d="M12 39V15m-6 6 6-6 6 6" fill="none" stroke="#8eafd5" stroke-width="3" stroke-linejoin="round"/><path d="M44 49h8v-7h6" fill="none" stroke="#c5cfdf" stroke-width="4"/>',

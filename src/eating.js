@@ -40,7 +40,7 @@ export function applyEating(viewer,phase){
   // Vanilla food use lasts 32 ticks, with chewing/particle events every 4 ticks.
   const lift=Math.min(1,tick/4),ease=lift*lift*(3-2*lift);
   const chew=tick>=8?Math.abs(Math.cos((APPLE_CONSUME_TICKS-tick)*Math.PI/4)):0;
-  skin.rightArm.rotation.set(-.3-1.75*ease+chew*.09,0,.5*ease);
+  skin.rightArm.rotation.set(-.3-1.12*ease+chew*.045,0,.40*ease);
   skin.leftArm.rotation.z=-.04;
   skin.head.rotation.x=.06*ease+chew*.025;
   apple.visible=tick<31;
@@ -48,7 +48,7 @@ export function applyEating(viewer,phase){
   // Keep the flat item upright while its hand follows the eating pose.
   apple.quaternion.copy(skin.rightArm.quaternion).invert();
   // Put the item in front of the palm so the arm does not cover its texture.
-  apple.position.add(offset.set(0,-1.2,2.5).applyQuaternion(apple.quaternion));
+  apple.position.add(offset.set(0,4.1,-.2).applyQuaternion(apple.quaternion));
   apple.rotateY(-.2);apple.rotateZ(-.12);
   crumbs.visible=tick>=8;
   const lastBite=tick>=31?31:Math.floor(tick/4)*4;
@@ -56,7 +56,7 @@ export function applyEating(viewer,phase){
   crumbs.children.forEach((particle,i)=>{
     particle.visible=crumbs.visible&&i<(lastBite===31?16:5)&&age<.3;
     const theta=i*2.39996+lastBite*.7;
-    particle.position.set(-.2+Math.cos(theta)*age*9,1.2+age*(4+i%3)-22*age*age,9+age*(4+i%4));
+    particle.position.set(-.2+Math.cos(theta)*age*9,2.0+age*(4+i%3)-22*age*age,7.9+age*(4+i%4));
     particle.rotation.set(age*4+i,theta,age*6);
   });
 }
