@@ -1,6 +1,7 @@
-import { Group, BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import { Group, BoxGeometry, Mesh, MeshStandardMaterial } from 'three';
 import swordPixels from './assets/diamond_sword.json';
 import { resetEffects, applyDeath, applyExplosion } from './effects.js';
+import { applyWaist } from './waist.js';
 import { SNEAK_REPEATS } from './timing.js';
 import { resetEating, applyEating } from './eating.js';
 
@@ -56,6 +57,8 @@ export function applyPose(viewer, sword, id, phase) {
   const player = viewer.playerObject;
   const skin = player.skin;
   skin.resetJoints();
+  skin.body.position.x = 0;
+  skin.head.position.x = 0;
   skin.head.position.z = 0;
   player.rotation.set(0,0,0);
   player.position.set(0,0,0);
@@ -64,42 +67,7 @@ export function applyPose(viewer, sword, id, phase) {
   sword.visible = id === 'slash';
   sword.position.x = skin.modelType === 'slim' ? -.5 : -1;
   const angle = phase * TAU;
-  if(id==='waist'){
-    // Reference: DetailedAnimationsXJustExpressions player.jem SneakyDance,
-    // steady intensity .15, opposite leg roll and delayed head/arm sway.
-    const sway=Math.sin(angle)*.15,bob=-Math.cos(angle*2)*.15;
-    // Adapt CEM's roll to the viewer's opposite Y axis. In particular, copying
-    // both leg tx and rz verbatim doubles foot travel instead of cancelling it.
-    // Vanilla crouch pitch .5 plus the pack's -.15 body pitch = .35 radians.
-    const bodyY=-1.5+bob;
-    skin.body.rotation.set(.35,0,-sway);
-    // Minecraft rotates its torso about the upper pivot; skinview3d uses its
-    // centre. Move that centre with the rotated half-height vector.
-    skin.body.position.set(-6*Math.sin(sway),bodyY-3.2-6*Math.cos(sway)*Math.cos(.35),-6*Math.cos(sway)*Math.sin(.35));
-    skin.head.position.set(0,bodyY-4.2,0);
-    skin.head.rotation.set(Math.cos(angle*2-.5)*.015,0,-Math.sin(angle-.5)*.075);
-    for(const [part,side] of [[skin.leftArm,1],[skin.rightArm,-1]]){
-      part.rotation.set(.4-Math.PI/36+(side===-1?.1:0),0,side*.1-Math.sin(angle-.25)*.15);
-      part.position.x-=sway*3;part.position.y+=bodyY-3.2+.5+side*sway*3;part.position.z=.75/.8;
-    }
-    for(const leg of [skin.leftLeg,skin.rightLeg]){
-      leg.rotation.set(0,0,sway);
-      // Source tx=-12*sway is the small-angle hip displacement. Resolve the
-      // same 12-pixel leg exactly so the sole centre stays planted throughout.
-      leg.position.x-=12*Math.sin(sway);
-      leg.position.y=-24+12*Math.cos(sway);
-    }
-    // Keep the pelvis attached to the planted legs. The original game's torso
-    // and this viewer use different pivots; a shoulder-pivot translation alone
-    // leaves the torso's lower face behind the hips when viewed from the side.
-    const pelvis=skin.leftLeg.position.clone().add(skin.rightLeg.position).multiplyScalar(.5);
-    // Small overlap covers the opposing slopes of rigid torso/leg cubes.
-    pelvis.y-=.85;
-    const torsoBottom=new Vector3(0,-6,0).applyQuaternion(skin.body.quaternion).add(skin.body.position);
-    const correction=pelvis.sub(torsoBottom);
-    for(const part of [skin.body,skin.head,skin.leftArm,skin.rightArm])part.position.add(correction);
-    return;
-  }
+  if(id==='waist'){applyWaist(skin,phase);return;}
   if(id==='eat'){applyEating(viewer,phase);return;}
   if(id==='death'){applyDeath(viewer,phase);return;}
   if(id==='revive'){applyDeath(viewer,1-phase);return;}
