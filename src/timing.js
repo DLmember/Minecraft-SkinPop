@@ -39,13 +39,17 @@ export function saveDurations(durations){
 }
 
 export function motionTiming(motion,fps,duration){
-  const seconds=duration;
+  // GIF uses whole centiseconds. Chromium/Firefox expand <=10 ms frames to
+  // 100 ms, so the old 60 FPS 20/10/20 pattern played unevenly and too slowly.
+  // Cap encoded density to 50 FPS and preserve the requested cycle duration
+  // (rounded to GIF precision). Two poses require at least 40 ms at extreme BPM.
+  const ticks=Math.max(4,Math.round(duration*100));
+  const seconds=ticks/100;
   // Store each held sneak pose once; delays preserve the rapid two-pose motion
   // without sub-20 ms GIF delays that browsers may stretch at the 0.5 s setting.
-  const frames=motion==='sneak'?SNEAK_REPEATS*2:Math.max(2,Math.round(fps*seconds));
+  const frames=motion==='sneak'?SNEAK_REPEATS*2:Math.max(2,Math.min(Math.floor(ticks/2),Math.round(Math.min(fps,50)*seconds)));
   // GIF stores centiseconds: distribute rounding across frames to preserve 0.5 s
   // at 25 FPS (13 frames), instead of rounding every frame up to 40 ms.
-  const ticks=Math.round(seconds*100);
   const delays=Array.from({length:frames},(_,i)=>(Math.round((i+1)*ticks/frames)-Math.round(i*ticks/frames))*10);
   return {duration:seconds,frames,delays};
 }

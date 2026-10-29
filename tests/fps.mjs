@@ -34,9 +34,10 @@ try{
     const path=`artifacts/fps-${fps}.gif`;await(await pending).saveAs(path);
     const bytes=await readFile(path),gif=parseGIF(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
     const frames=decompressFrames(gif,true);
-    assert.equal(gif.lsd.width,256);assert.equal(frames.length,fps);
+    assert.equal(gif.lsd.width,256);assert.equal(frames.length,Math.min(fps,50));
     assert.equal(frames.reduce((s,f)=>s+f.delay,0),1000);
-    assert(frames.every(f=>f.delay>0));
+    assert(frames.every(f=>f.delay>=20));
+    if(fps===60)assert(frames.every(f=>f.delay===20),'60 FPS compatibility mode must have uniform 20 ms frames');
   }
   for(const invalid of ['broken','0','999','null','"60"']){
     await page.evaluate(({key,invalid})=>localStorage.setItem(key,invalid),{key,invalid});
@@ -53,5 +54,5 @@ try{
   await denied.locator('#fps').selectOption('60');assert.equal(await denied.locator('#fps').inputValue(),'60');
   assert(await denied.locator('#toast').isVisible());await denied.close();
   assert.deepEqual(errors,[]);
-  console.log('PASS: 30 FPS default; all five choices persist; action changes preserve FPS; 30/60-frame GIFs total 1 second; invalid/denied storage handled.');
+  console.log('PASS: default/persistence; 30/60 options encode 30/50 frames in 1 second without browser-clamped short delays; invalid/denied storage handled.');
 }finally{await browser.close();}
