@@ -6,7 +6,7 @@ import { motions, createSword, applyPose, configureCamera, motionIllustration } 
 import { exportGif } from './export.js';
 import { zipSync } from 'fflate';
 import { prepareEffects } from './effects.js';
-import { motionTiming, loadDurations, saveDurations, usesBpm } from './timing.js';
+import { motionTiming, loadDurations, saveDurations, usesBpm, loadFrameRate, saveFrameRate } from './timing.js';
 
 const $ = selector => document.querySelector(selector);
 const icons = {
@@ -30,6 +30,7 @@ document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icon(el.datase
 
 const state = { skin:makeDemoSkin(), detectedModel:'default', name:'示例玩家', motion:'spin', background:'#e8f4ff', phase:0, paused:matchMedia('(prefers-reduced-motion: reduce)').matches, busy:false, querying:false, resultUrl:null, resultVersion:-1, version:0, resultMeta:null, batchController:null };
 const durations=loadDurations();
+$('#fps').value=String(loadFrameRate());
 $('#duration').value=String(durations[state.motion]);
 function setStageBackground(color) { $('#stage').style.setProperty('--stage',color); $('#stage').classList.toggle('transparent-stage',color==='transparent'); }
 let viewer, sword, lastTime=performance.now(), toastTimer, loadSequence=0;
@@ -179,7 +180,11 @@ document.querySelectorAll('.swatch').forEach(button=>button.addEventListener('cl
   document.querySelectorAll('.swatch').forEach(el=>{el.classList.toggle('active',el===button);el.setAttribute('aria-pressed',String(el===button));});
   invalidate();
 }));
-for(const id of ['resolution','fps'])$('#'+id).addEventListener('change',invalidate);
+$('#resolution').addEventListener('change',invalidate);
+$('#fps').addEventListener('change',()=>{
+  if(!saveFrameRate(Number($('#fps').value)))toast('当前浏览器无法保存帧率设置；本次打开期间仍可使用所选帧率。');
+  invalidate();
+});
 $('#duration').addEventListener('change',()=>{
   durations[state.motion]=Number($('#duration').value);
   if(!saveDurations(durations))toast('当前浏览器无法保存设置；本次打开期间仍会记住各动作时长。');

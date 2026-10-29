@@ -1,6 +1,23 @@
 export const DURATIONS = [.5,.6,1,1.5,1.6,2,3,4];
 export const DEFAULT_DURATIONS = Object.freeze({spin:1.5,head:1.5,walk:2,slash:1,eat:1.6,waist:.6,sneak:2,squash:1,sit:1,death:2,revive:2,explode:2});
 export const DURATION_STORAGE_KEY = 'skinpop.motion-durations.v1';
+export const FRAME_RATES = Object.freeze([10,20,25,30,60]);
+export const DEFAULT_FPS = 30;
+export const FPS_STORAGE_KEY = 'skinpop.fps.v1';
+
+export function loadFrameRate(){
+  try {
+    const value=JSON.parse(localStorage.getItem(FPS_STORAGE_KEY));
+    if(FRAME_RATES.includes(value))return value;
+  } catch { /* Missing, invalid or unavailable storage uses the default. */ }
+  return DEFAULT_FPS;
+}
+
+export function saveFrameRate(fps){
+  if(!FRAME_RATES.includes(fps))return false;
+  try { localStorage.setItem(FPS_STORAGE_KEY,JSON.stringify(fps));return true; }
+  catch { return false; }
+}
 export const SNEAK_REPEATS = 10;
 export const usesBpm = id => id==='waist'||id==='squash';
 
